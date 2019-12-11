@@ -1,37 +1,36 @@
-import dlib, os, shutil
+import dlib
+import os
 import numpy as np
-from skimage import io
-from scipy.spatial import distance
-import pickle
 import nmslib
 
-index = nmslib.init(method='hnsw', space='l2', data_type=nmslib.DataType.DENSE_VECTOR)
 
-files = os.listdir('npy') 
+if __name__ == '__main__':
+    index = nmslib.init(method='hnsw',
+                        space='l2',
+                        data_type=nmslib.DataType.DENSE_VECTOR)
 
-es = []  
-e=0
+    files = os.listdir('npy')
 
-ff=open('associations.txt', 'w')
+    es = []
+    e = 0
 
-for x in files: 
-    e=e+1
-    name, _ = os.path.splitext(x)
-    embedding=np.load('npy/'+x)
-    ff.write(str(e)+'|'+x+'\n')
-    index.addDataPoint(e, embedding)
+    with open('associations.txt', 'w') as embedding_file:
 
-    
-index_time_params = {
-    'indexThreadQty': 4,
-    'skip_optimized_index': 0,
-    'post': 2,
-    'delaunay_type': 1,
-    'M': 100,
-    'efConstruction': 2000
-}
+        for file in files:
+            e += 1
+            name, _ = os.path.splitext(file)
+            embedding = np.load('npy/' + file)
+            embedding_file.write(str(e) + '|' + file + '\n')
+            index.addDataPoint(e, embedding)
 
-index.createIndex(index_time_params, print_progress=True)
-index.saveIndex('embeddings.bin')
+        index_time_params = {
+            'indexThreadQty': 4,
+            'skip_optimized_index': 0,
+            'post': 2,
+            'delaunay_type': 1,
+            'M': 100,
+            'efConstruction': 2000
+        }
 
-ff.close()
+        index.createIndex(index_time_params, print_progress=True)
+        index.saveIndex('embeddings.bin')
